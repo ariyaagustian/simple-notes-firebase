@@ -1,6 +1,6 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
-import { addDataToAPI } from "../../../config/redux/action";
+import { addDataToAPI, getDataFromAPI } from "../../../config/redux/action";
 
 class Dashboard extends Component {
   state = {
@@ -8,6 +8,11 @@ class Dashboard extends Component {
     content: "",
     date: "",
   };
+
+  componentDidMount() {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    this.props.getNotes(userData.uid);
+  }
 
   onInputChange = (e, type) => {
     this.setState({
@@ -18,18 +23,19 @@ class Dashboard extends Component {
   handleSaveNotes = () => {
     const { title, content } = this.state;
     const { saveNotes } = this.props;
+    const userData = JSON.parse(localStorage.getItem("userData"));
 
     const data = {
       title: title,
       content: content,
       date: new Date().getTime(),
-      userId: this.props.userData.uid,
+      userId: userData.uid,
     };
     saveNotes(data);
-    console.log(data);
   };
 
   render() {
+    const { notes } = this.props;
     return (
       <div className="h-screen antialiased font-sans bg-gray-200 pt-3 pl-3 pr-3 pb-3">
         <div className="grid grid-flow-row auto-rows-max">
@@ -88,26 +94,34 @@ class Dashboard extends Component {
               </div>
             </div>
           </div>
-          <div className="md:col-span-2 pt-2">
-            <div className="shadow sm:rounded-md sm:overflow-hidden bg-white p-6">
-              <div className="mb-8">
-                <div className="text-gray-900 font-bold text-xl mb-2">
-                  Can coffee make you a better developer?
-                </div>
-                <p className="text-gray-700 text-base">
-                  Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                  Voluptatibus quia, nulla! Maiores et perferendis eaque,
-                  exercitationem praesentium nihil.
-                </p>
-              </div>
-              <div className="flex items-center">
-                <div className="text-sm">
-                  <p className="text-gray-900 leading-none">Jonathan Reinink</p>
-                  <p className="text-gray-600">Aug 18</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {notes.length > 0 ? (
+            <Fragment>
+              {notes.map((note) => {
+                return (
+                  <div className="md:col-span-2 pt-2" key={note.id}>
+                    <div className="shadow sm:rounded-md sm:overflow-hidden bg-white p-6">
+                      <div className="mb-8">
+                        <div className="text-gray-900 font-bold text-xl mb-2">
+                          {note.data.title}
+                        </div>
+                        <p className="text-gray-700 text-base">
+                          {note.data.content}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="text-sm">
+                          {/* <p className="text-gray-900 leading-none">
+                            Jonathan Reinink
+                          </p> */}
+                          <p className="text-gray-600">{note.data.date}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </Fragment>
+          ) : null}
         </div>
       </div>
     );
@@ -116,10 +130,12 @@ class Dashboard extends Component {
 
 const reduxState = (state) => ({
   userData: state.user,
+  notes: state.notes,
 });
 
 const reduxDispatch = (dispatch) => ({
   saveNotes: (data) => dispatch(addDataToAPI(data)),
+  getNotes: (data) => dispatch(getDataFromAPI(data)),
 });
 
 export default connect(reduxState, reduxDispatch)(Dashboard);
