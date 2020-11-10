@@ -86,3 +86,30 @@ export const getDataFromAPI = (userId) => (dispatch) => {
     });
   });
 };
+
+export const updateDataFromAPI = (data) => (dispatch) => {
+  const urlNotes = database.ref(`notes/${data.userId}/${data.noteId}`);
+  return new Promise((resolve, reject) => {
+    urlNotes.set(
+      {
+        title: data.title,
+        content: data.content,
+        date: data.date,
+      },
+      (err) => {
+        if (err) {
+          reject(false);
+        } else {
+          resolve(true);
+        }
+      }
+    );
+  });
+};
+
+export const deleteDataAPI = (data) => (dispatch) => {
+  const urlNotes = database.ref(`notes/${data.userId}/${data.noteId}`);
+  return new Promise((resolve, reject) => {
+    urlNotes.remove();
+  });
+};
